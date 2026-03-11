@@ -5,55 +5,60 @@ import qrcode
 from PIL import Image
 import pytesseract
 from io import BytesIO
+import time
 
-st.set_page_config(page_title="SmartConvert Pro", layout="wide")
-st.title("🚀 SmartConvert Pro: All-in-One Digital Tool")
+# Page Layout & Style
+st.set_page_config(page_title="SmartConvert Pro | AI Tools", layout="wide")
 
-# --- SECTION 1: PHOTO SE TEXT NIKALNA (New Feature) ---
-st.header("📸 Photo se Notes/PDF Banao")
-uploaded_file = st.file_uploader("Wife ke Sociology notes ya kisi bhi page ki photo upload karo", type=['jpg', 'jpeg', 'png'])
+# Custom CSS for Professional Look
+st.markdown("""
+    <style>
+    .main { background-color: #f5f7f9; }
+    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #007bff; color: white; }
+    </style>
+    """, unsafe_allow_html=True)
 
-if uploaded_file is not None:
-    img = Image.open(uploaded_file)
-    st.image(img, caption='Uploaded Photo', width=300)
-    if st.button("Extract Text from Photo"):
-        extracted_text = pytesseract.image_to_string(img)
-        st.subheader("Extracted Text:")
-        st.text_area("Yahan se copy karein:", extracted_text, height=150)
+st.title("💰 SmartConvert Pro: Your Digital Earnings Hub")
+st.write("Convert Photos, Text, and Audio instantly.")
+
+# --- SECTION 1: PHOTO TO TEXT (The Money Maker) ---
+with st.expander("📸 Photo to Text / PDF Converter", expanded=True):
+    uploaded_file = st.file_uploader("Upload Image (Notes, Books, Bills)", type=['jpg', 'jpeg', 'png'])
+    if uploaded_file:
+        img = Image.open(uploaded_file)
+        st.image(img, width=250)
+        if st.button("Start Extraction"):
+            with st.spinner('AI is reading the image... Please wait.'):
+                time.sleep(2) # User ko rokne ke liye (For future Ads)
+                text = pytesseract.image_to_string(img)
+                st.session_state['extracted'] = text
+                st.success("Extraction Complete!")
+                st.text_area("Result:", text, height=150)
 
 st.markdown("---")
 
-# --- SECTION 2: MANUAL TEXT TO AUDIO/PDF/QR (Purane Features) ---
-st.header("✍️ Text to Audio, PDF & QR")
-user_input = st.text_area("Yahan apna content likho ya upar se copy karke paste karo:", placeholder="Kunal AI Studio Punjab...")
-
-col1, col2, col3 = st.columns(3)
+# --- SECTION 2: UTILITY TOOLS ---
+col1, col2 = st.columns(2)
 
 with col1:
-    if st.button("🎙️ Audio (MP3)"):
-        if user_input:
-            tts = gTTS(text=user_input, lang='hi')
+    st.header("🎙️ Text to Audio")
+    txt_input = st.text_area("Enter text for Audio:", key="audio_in")
+    if st.button("Generate MP3"):
+        if txt_input:
+            tts = gTTS(text=txt_input, lang='hi')
             tts.save("voice.mp3")
             st.audio("voice.mp3")
 
 with col2:
-    if st.button("📄 Document (PDF)"):
-        if user_input:
-            pdf = FPDF()
-            pdf.add_page()
-            pdf.set_font("Arial", size=12)
-            pdf.multi_cell(0, 10, txt=user_input.encode('latin-1', 'ignore').decode('latin-1'))
-            pdf_bytes = pdf.output(dest='S').encode('latin-1')
-            st.download_button("Download PDF", data=pdf_bytes, file_name="kunal_notes.pdf")
-
-with col3:
-    if st.button("🏁 QR Code"):
-        if user_input:
-            qr = qrcode.make(user_input)
+    st.header("🏁 QR Generator")
+    qr_input = st.text_input("Enter URL or Text for QR:", key="qr_in")
+    if st.button("Generate QR"):
+        if qr_input:
+            qr = qrcode.make(qr_input)
             buf = BytesIO()
             qr.save(buf)
-            st.image(buf)
-            st.download_button("Download QR", data=buf.getvalue(), file_name="my_qr.png")
+            st.image(buf, width=200)
 
+# --- FOOTER (Trust Building) ---
 st.markdown("---")
-st.write("🛠️ **Special for Firozpur Students:** Photo kheencho aur notes suno!")
+st.markdown("<p style='text-align: center;'>© 2026 SmartConvert Pro | For Support: kunalgharu16@gmail.com</p>", unsafe_allow_html=True)
