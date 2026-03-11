@@ -6,80 +6,87 @@ from PIL import Image
 import pytesseract
 import io
 import base64
+from googletrans import Translator
 
-# Page Config
-st.set_page_config(page_title="SmartConvert Pro", layout="wide")
+# Page Setup for Global Reach
+st.set_page_config(page_title="SmartConvert Global | Free AI Tool", layout="wide")
+translator = Translator()
 
-st.title("🚀 SmartConvert Pro")
-st.write("Photo, Text, Audio aur PDF Tool")
+st.title("🌍 SmartConvert Global: All-in-One AI Utility")
+st.write("Convert, Translate, and Generate — Free for Everyone, Everywhere.")
+
+# --- LANGUAGE SELECTOR FOR GLOBAL USERS ---
+st.sidebar.header("🌐 Select Language")
+lang_opt = st.sidebar.selectbox("Choose your language", ["English", "Hindi", "Punjabi", "Spanish", "French", "Arabic", "German"])
+lang_codes = {"English": "en", "Hindi": "hi", "Punjabi": "pa", "Spanish": "es", "French": "fr", "Arabic": "ar", "German": "de"}
+target_lang = lang_codes[lang_opt]
 
 if 'final_text' not in st.session_state:
     st.session_state['final_text'] = ""
 
-# --- SECTION 1: PHOTO TO TEXT ---
-st.header("📸 Photo se Text")
-uploaded_file = st.file_uploader("Photo upload karo", type=['jpg', 'jpeg', 'png'])
+# --- SECTION 1: PHOTO TO TEXT (OCR) ---
+st.header("📸 Image to Text (OCR)")
+uploaded_file = st.file_uploader("Upload any document image", type=['jpg', 'jpeg', 'png'])
 
 if uploaded_file:
     img = Image.open(uploaded_file)
     st.image(img, width=250)
-    if st.button("Extract Text"):
+    if st.button("Extract & Translate"):
         try:
             extracted = pytesseract.image_to_string(img)
-            st.session_state['final_text'] = extracted
-            st.success("Text mil gaya!")
-        except Exception as e:
-            st.error("Engine Error. 'packages.txt' check karein.")
+            # Global Translation Logic
+            translated = translator.translate(extracted, dest=target_lang).text
+            st.session_state['final_text'] = translated
+            st.success(f"Success! Translated to {lang_opt}")
+        except:
+            st.error("Engine busy. Please ensure 'packages.txt' is active.")
 
 st.markdown("---")
 
-# --- SECTION 2: TOOLS ---
-st.header("✍️ Audio, PDF & QR")
-user_text = st.text_area("Content:", value=st.session_state['final_text'], height=150)
+# --- SECTION 2: MULTI-TOOLS ---
+st.header("🛠️ Digital Tools Hub")
+user_text = st.text_area("Your Content:", value=st.session_state['final_text'], height=150)
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.subheader("🎙️ Audio")
-    if st.button("Generate Audio"):
+    st.subheader("🎙️ Audio (Global Voice)")
+    if st.button("Generate MP3"):
         if user_text:
-            try:
-                tts = gTTS(text=user_text, lang='hi')
-                audio_io = io.BytesIO()
-                tts.write_to_fp(audio_io)
-                audio_bytes = audio_io.getvalue()
-                
-                # --- MOBILE AUDIO FIX (Base64) ---
-                b64 = base64.b64encode(audio_bytes).decode()
-                md = f"""
-                    <audio controls autoplay>
-                    <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-                    </audio>
-                    """
-                st.markdown(md, unsafe_allow_html=True)
-                
-                st.download_button("📥 Download MP3", data=audio_bytes, file_name="audio.mp3")
-            except:
-                st.error("Audio failed.")
+            tts = gTTS(text=user_text, lang=target_lang)
+            audio_io = io.BytesIO()
+            tts.write_to_fp(audio_io)
+            b64 = base64.b64encode(audio_io.getvalue()).decode()
+            st.markdown(f'<audio controls><source src="data:audio/mp3;base64,{b64}" type="audio/mp3"></audio>', unsafe_allow_html=True)
+            st.download_button("📥 Download Audio", data=audio_io.getvalue(), file_name="global_audio.mp3")
 
 with col2:
-    st.subheader("📄 PDF")
-    if st.button("Make PDF"):
+    st.subheader("📄 Smart PDF")
+    if st.button("Create PDF"):
         if user_text:
             pdf = FPDF()
             pdf.add_page()
             pdf.set_font("Arial", size=12)
             pdf.multi_cell(0, 10, txt=user_text.encode('latin-1', 'ignore').decode('latin-1'))
-            st.download_button("📥 Download PDF", data=pdf.output(dest='S').encode('latin-1'), file_name="notes.pdf")
+            st.download_button("📥 Download PDF", data=pdf.output(dest='S').encode('latin-1'), file_name="smart_notes.pdf")
 
 with col3:
-    st.subheader("🏁 QR")
-    if st.button("Make QR"):
+    st.subheader("🏁 QR Master")
+    if st.button("Create QR"):
         if user_text:
             qr = qrcode.make(user_text)
-            qio = io.BytesIO()
-            qr.save(qio)
-            st.image(qio, width=150)
+            q_io = io.BytesIO()
+            qr.save(q_io)
+            st.image(q_io, width=150)
 
-st.write("---")
-st.caption("Kunal Gharu | Firozpur")
+# --- EARNINGS & AD-SENSE COMPLIANCE ---
+st.markdown("---")
+col_f1, col_f2 = st.columns(2)
+with col_f1:
+    if st.button("⚖️ Privacy Policy"):
+        st.info("We do not store your data. All conversions happen in real-time.")
+with col_f2:
+    if st.button("📩 Contact Support"):
+        st.info("Email: kunalgharu16@gmail.com")
+
+st.caption("© 2026 SmartConvert Global | Fast. Free. Secure.")
