@@ -6,68 +6,90 @@ from PIL import Image
 import pytesseract
 import io
 
-st.set_page_config(page_title="SmartConvert Pro", layout="wide")
-st.title("🚀 SmartConvert Pro")
+# Page Title & Layout
+st.set_page_config(page_title="SmartConvert Pro | Kunal Studio", layout="wide")
 
-# --- PHOTO TO TEXT SECTION ---
-st.header("📸 Photo to Text")
-uploaded_file = st.file_uploader("Photo upload karo", type=['jpg', 'jpeg', 'png'])
+st.title("🚀 SmartConvert Pro")
+st.write("Convert Photos to Text, PDF, Audio, and QR Codes instantly.")
+
+# --- SECTION 1: PHOTO TO TEXT ---
+st.header("📸 Step 1: Photo se Text Nikalo")
+uploaded_file = st.file_uploader("Sociology notes ya koi bhi photo upload karo", type=['jpg', 'jpeg', 'png'])
+
+# Session state to store text across interactions
+if 'final_text' not in st.session_state:
+    st.session_state['final_text'] = ""
 
 if uploaded_file:
     img = Image.open(uploaded_file)
-    st.image(img, width=250)
-    if st.button("Extract Text"):
-        try:
-            # Check if tesseract is installed
-            text = pytesseract.image_to_string(img)
-            if text.strip():
-                st.session_state['last_text'] = text
-                st.success("Text mil gaya!")
-                st.text_area("Extracted:", text, height=150)
-            else:
-                st.warning("Photo mein koi text nahi mila. Clear photo try karein.")
-        except Exception as e:
-            st.error(f"Error: {e}")
-            st.info("Pehla kaam: GitHub pe 'packages.txt' banayein aur usme 'tesseract-ocr' likhein.")
+    st.image(img, width=300, caption="Aapki Photo")
+    
+    if st.button("Extract Text from Photo"):
+        with st.spinner("AI photo padh raha hai..."):
+            try:
+                extracted = pytesseract.image_to_string(img)
+                if extracted.strip():
+                    st.session_state['final_text'] = extracted
+                    st.success("Text mil gaya! Neeche dekhiye.")
+                else:
+                    st.warning("Photo saaf nahi hai ya text nahi mila.")
+            except Exception as e:
+                st.error(f"Error: {e}. Make sure 'packages.txt' is added.")
 
 st.markdown("---")
 
-# --- TEXT TO AUDIO/PDF/QR ---
-st.header("✍️ Audio, PDF & QR")
-# Agar upar se text nikla hai toh wo apne aap yahan aa jaye
-default_text = st.session_state.get('last_text', "")
-user_input = st.text_area("Yahan text likhein:", value=default_text)
+# --- SECTION 2: TEXT MANIPULATION ---
+st.header("✍️ Step 2: Audio, PDF ya QR Banao")
+# Input box jisme extracted text apne aap aa jayega
+user_text = st.text_area("Yahan apna text edit karein:", value=st.session_state['final_text'], height=200)
 
 col1, col2, col3 = st.columns(3)
 
+# --- AUDIO SECTION ---
 with col1:
-    if st.button("🎙️ Audio"):
-        if user_input:
-            with st.spinner("Processing Audio..."):
-                tts = gTTS(text=user_input, lang='hi')
-                fp = io.BytesIO()
-                tts.write_to_fp(fp)
-                fp.seek(0)
-                st.audio(fp, format='audio/mp3')
+    st.subheader("🎙️ Audio")
+    if st.button("Generate Audio"):
+        if user_text:
+            try:
+                tts = gTTS(text=user_text, lang='hi')
+                audio_io = io.BytesIO()
+                tts.write_to_fp(audio_io)
+                audio_bytes = audio_io.getvalue()
+                
+                st.audio(audio_bytes, format='audio/mp3')
+                st.download_button("📥 Download MP3", data=audio_bytes, file_name="kunal_audio.mp3")
+            except Exception as e:
+                st.error("Audio nahi ban paya.")
         else:
-            st.warning("Pehle kuch likho!")
+            st.info("Pehle text likho!")
 
+# --- PDF SECTION ---
 with col2:
-    if st.button("📄 PDF"):
-        if user_input:
+    st.subheader("📄 PDF")
+    if st.button("Generate PDF"):
+        if user_text:
             pdf = FPDF()
             pdf.add_page()
             pdf.set_font("Arial", size=12)
-            pdf.multi_cell(0, 10, txt=user_input.encode('latin-1', 'ignore').decode('latin-1'))
-            st.download_button("Download PDF", data=pdf.output(dest='S').encode('latin-1'), file_name="notes.pdf")
+            # Encoding fix for special characters
+            pdf.multi_cell(0, 10, txt=user_text.encode('latin-1', 'ignore').decode('latin-1'))
+            pdf_bytes = pdf.output(dest='S').encode('latin-1')
+            st.download_button("📥 Download PDF", data=pdf_bytes, file_name="notes.pdf")
+        else:
+            st.info("Pehle text likho!")
 
+# --- QR SECTION ---
 with col3:
-    if st.button("🏁 QR Code"):
-        if user_input:
-            qr = qrcode.make(user_input)
-            buf = io.BytesIO()
-            qr.save(buf)
-            st.image(buf)
+    st.subheader("🏁 QR Code")
+    if st.button("Generate QR"):
+        if user_text:
+            qr = qrcode.make(user_text)
+            qr_io = io.BytesIO()
+            qr.save(qr_io)
+            st.image(qr_io, width=200)
+            st.download_button("📥 Download QR", data=qr_io.getvalue(), file_name="my_qr.png")
+        else:
+            st.info("Pehle text likho!")
 
-st.write("---")
-st.caption("Developed by Kunal | Firozpur")
+st.markdown("---")
+st.caption("Developed by Kunal Gharu | Firozpur, Punjab")
