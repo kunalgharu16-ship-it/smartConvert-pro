@@ -1,0 +1,4 @@
+streamlit
+gtts
+fpdf
+qrcode[pil]
