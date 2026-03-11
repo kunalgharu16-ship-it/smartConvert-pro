@@ -2,3 +2,5 @@ streamlit
 gtts
 fpdf
 qrcode[pil]
+pytesseract
+pillow
