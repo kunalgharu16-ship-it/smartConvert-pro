@@ -1,44 +1,39 @@
 import streamlit as st
 from gtts import gTTS
 from fpdf import FPDF
-import qrcode
-from io import BytesIO
+import pytesseract
+from PIL import Image
+import io
 
 st.set_page_config(page_title="SmartConvert Pro", layout="wide")
-st.title("💰 SmartConvert Pro: All-in-One Digital Tool")
+st.title("🚀 SmartConvert Pro: Image to PDF & Audio")
 
-# Sidebar for Earning Info
-st.sidebar.header("User Dashboard")
-st.sidebar.success("Account Status: Active")
-st.sidebar.write("Today's Users: 1 (Kunal)")
+# Naya Feature: Image to Text/PDF
+st.header("📸 Photo se Text/PDF Banao")
+uploaded_file = st.file_uploader("Sociology notes ya kisi bhi page ki photo upload karo", type=['jpg', 'jpeg', 'png'])
 
-# Main Input
-user_input = st.text_area("Yahan apna content dalo (Hindi/English/Punjabi):", placeholder="Example: Aaj ki taja khabar...")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    if st.button("🎙️ Audio (MP3)"):
-        tts = gTTS(text=user_input, lang='hi')
-        tts.save("voice.mp3")
-        st.audio("voice.mp3")
-
-with col2:
-    if st.button("📄 Document (PDF)"):
+if uploaded_file is not None:
+    image = Image.open(uploaded_file)
+    st.image(image, caption='Uploaded Photo', width=300)
+    
+    if st.button("Extract Text from Photo"):
+        # Photo se text nikalna
+        extracted_text = pytesseract.image_to_string(image)
+        st.text_area("Nikala gaya Text:", extracted_text, height=200)
+        
+        # Option 1: PDF Banana
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", size=12)
-        pdf.multi_cell(0, 10, txt=user_input)
-        pdf_bytes = pdf.output(dest='S').encode('latin-1')
-        st.download_button("Download PDF", data=pdf_bytes, file_name="kunal_notes.pdf")
-
-with col3:
-    if st.button("🏁 QR Code"):
-        qr = qrcode.make(user_input)
-        buf = BytesIO()
-        qr.save(buf)
-        st.image(buf)
-        st.download_button("Download QR", data=buf.getvalue(), file_name="my_qr.png")
+        pdf.multi_cell(0, 10, txt=extracted_text.encode('latin-1', 'ignore').decode('latin-1'))
+        pdf_output = pdf.output(dest='S').encode('latin-1')
+        st.download_button("📥 Download as PDF", data=pdf_output, file_name="kunal_notes.pdf")
+        
+        # Option 2: Audio Banana
+        if st.button("🎙️ Is Text ki Audio Suno"):
+            tts = gTTS(text=extracted_text, lang='hi')
+            tts.save("extracted.mp3")
+            st.audio("extracted.mp3")
 
 st.markdown("---")
-st.write("📢 **Ad Space:** Your ad could be here! Contact: kunalgharu16@gmail.com")
+st.write("🛠️ **Special for Students:** Photo kheencho aur notes taiyar!")
